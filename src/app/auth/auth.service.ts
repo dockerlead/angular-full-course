@@ -7,6 +7,7 @@ interface AuthResponseData {
   refreshToken: string;
   expiresIn: string;
   localId: string;
+  kind?: string;
 }
 
 @Injectable({providedIn: 'root'})
