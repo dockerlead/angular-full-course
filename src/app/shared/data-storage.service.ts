@@ -1,7 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Recipe } from '../recipes/recipe.model';
+import { map } from 'rxjs/operators';
 
+import { Recipe } from '../recipes/recipe.model';
 import { RecipeService } from '../recipes/recipe.service';
 
 const RECIPES_ENDPOINT_URL = 'https://angular-udemy-course-recipe-default-rtdb.firebaseio.com/recipes.json';
@@ -27,10 +28,16 @@ export class DataStorageService {
   }
 
   fetchRecipes() {
-    return this.httpClient.get<Recipe[]>(RECIPES_ENDPOINT_URL).subscribe(
-      recipes => {
-        this.recipeService.setRecipes(recipes);
-      }
-    );
+    return this.httpClient.get<Recipe[]>(RECIPES_ENDPOINT_URL)
+      .pipe(map(recipes => {
+        return recipes.map(recipe => {
+          return {...recipe, ingredients: recipe.ingredients ? recipe.ingredients : []}
+        });
+      }))
+      .subscribe(
+        recipes => {
+          this.recipeService.setRecipes(recipes);
+        }
+      );
   }
 }
