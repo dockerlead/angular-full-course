@@ -3,6 +3,7 @@ import {Injectable} from "@angular/core";
 import {catchError, tap} from "rxjs/operators";
 import {BehaviorSubject, throwError} from "rxjs";
 import {User} from "./user.model";
+import {Router} from "@angular/router";
 
 export interface AuthResponseData {
   idToken: string;
@@ -20,7 +21,10 @@ const FIREBASE_WEB_API_KEY = 'AIzaSyD36JnxLvpbrZuPFrKpVbXL26gVruKzRjQ';
 export class AuthService {
   user = new BehaviorSubject<User>(null);
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private router: Router
+  ) {}
 
   signup(email: string, password: string) {
     return this.http.post<AuthResponseData>(
@@ -56,6 +60,11 @@ export class AuthService {
         +resData.expiresIn
       );
     }));
+  }
+
+  logout() {
+    this.user.next(null);
+    this.router.navigate(['/auth']);
   }
 
   private handleAuthentication(
