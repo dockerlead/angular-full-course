@@ -7,9 +7,7 @@ import { HeaderComponent } from './header/header.component';
 
 import { CoreModule } from './core.module';
 import { AppRoutingModule } from './app-routing.module';
-import { ShoppingListModule } from './shopping-list/shopping-list.module';
 import { SharedModule } from './shared/shared.module';
-import { AuthModule } from './auth/auth.module';
 
 @NgModule({
   declarations: [
@@ -21,9 +19,7 @@ import { AuthModule } from './auth/auth.module';
     HttpClientModule,
     CoreModule,
     AppRoutingModule,
-    ShoppingListModule,
     SharedModule,
-    AuthModule,
   ],
   bootstrap: [AppComponent]
 })
