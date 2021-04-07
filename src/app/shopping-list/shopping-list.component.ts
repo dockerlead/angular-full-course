@@ -15,7 +15,7 @@ export class ShoppingListComponent implements OnInit {
 
   constructor(
     private shoppingListService: ShoppingListService,
-    private store: Store<{shoppingList: {ingredients: Ingredient[]}}>
+    private store: Store<{ shoppingList: { ingredients: Ingredient[] } }>
   ) {
   }
 

@@ -12,6 +12,7 @@ import {ShoppingListRoutingModule} from "./shopping-list-routing.module";
     ShoppingEditComponent,
   ],
   imports: [
+    CommonModule,
     FormsModule,
     SharedModule,
     ShoppingListRoutingModule,
