@@ -19,11 +19,67 @@ export interface AuthResponseData {
   registered?: boolean;
 }
 
+const handleAuthentication = (
+  email: string,
+  userId: string,
+  token: string,
+  expiresIn: number
+) => {
+  const expirationDate = new Date(new Date().getTime() + expiresIn * 1000);
+  return new AuthActions.AuthenticateSuccess({
+    email,
+    userId,
+    token,
+    expirationDate
+  });
+};
+
+const handleError = (errorRes: any) => {
+  let errorMsg = 'An unknown error occurred!';
+  if (!errorRes.error || !errorRes.error.error) {
+    return of(new AuthActions.AuthenticateFail(errorMsg));
+  }
+  switch (errorRes.error.error.message) {
+    case 'EMAIL_EXISTS':
+      errorMsg = 'This email exists already!';
+      break;
+    case 'EMAIL_NOT_FOUND':
+      errorMsg = 'This email does not exist.';
+      break;
+    case 'INVALID_PASSWORD':
+      errorMsg = 'This password is not correct.';
+      break;
+  }
+  return of(new AuthActions.AuthenticateFail(errorMsg));
+};
+
 @Injectable()
 export class AuthEffects {
   @Effect()
   authSignup = this.actions$.pipe(
-    ofType(AuthActions.SIGNUP_START)
+    ofType(AuthActions.SIGNUP_START),
+    switchMap((signupAction: AuthActions.SignupStart) => {
+      return this.http.post<AuthResponseData>(
+        `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${environment.firebaseAPIKey}`,
+        {
+          email: signupAction.payload.email,
+          password: signupAction.payload.password,
+          returnSecureToken: true
+        }
+      ).pipe(
+        map(resData => {
+          return handleAuthentication(
+            resData.email,
+            resData.localId,
+            resData.idToken,
+            +resData.expiresIn
+          );
+        }),
+        catchError(errorRes => {
+          return handleError(errorRes);
+        })
+      )
+    })
   );
 
   @Effect()
@@ -39,31 +95,15 @@ export class AuthEffects {
         }
       ).pipe(
         map(resData => {
-          const expirationDate = new Date(new Date().getTime() + +resData.expiresIn * 1000);
-          return new AuthActions.AuthenticateSuccess({
-            email: resData.email,
-            userId: resData.localId,
-            token: resData.idToken,
-            expirationDate
-          });
+          return handleAuthentication(
+            resData.email,
+            resData.localId,
+            resData.idToken,
+            +resData.expiresIn
+          );
         }),
         catchError(errorRes => {
-          let errorMsg = 'An unknown error occurred!';
-          if (!errorRes.error || !errorRes.error.error) {
-            return of(new AuthActions.AuthenticateFail(errorMsg));
-          }
-          switch (errorRes.error.error.message) {
-            case 'EMAIL_EXISTS':
-              errorMsg = 'This email exists already!';
-              break;
-            case 'EMAIL_NOT_FOUND':
-              errorMsg = 'This email does not exist.';
-              break;
-            case 'INVALID_PASSWORD':
-              errorMsg = 'This password is not correct.';
-              break;
-          }
-          return of(new AuthActions.AuthenticateFail(errorMsg));
+          return handleError(errorRes);
         })
       );
     }),
