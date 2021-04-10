@@ -1,11 +1,12 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { exhaustMap, map, take, tap } from 'rxjs/operators';
-import { AuthService } from '../auth/auth.service';
-import { User } from '../auth/user.model';
+import {Store} from '@ngrx/store';
+import { map, tap } from 'rxjs/operators';
 
 import { Recipe } from '../recipes/recipe.model';
 import { RecipeService } from '../recipes/recipe.service';
+import * as fromApp from '../store/app.reducer';
+import * as RecipesActions from '../recipes/store/recipe.actions';
 
 const RECIPES_ENDPOINT_URL = 'https://angular-udemy-course-recipe-default-rtdb.firebaseio.com/recipes.json';
 
@@ -17,7 +18,7 @@ export class DataStorageService {
   constructor(
     private httpClient: HttpClient,
     private recipeService: RecipeService,
-    private authSerivce: AuthService
+    private store: Store<fromApp.AppState>
   ) { }
 
   storeRecipes() {
@@ -39,7 +40,7 @@ export class DataStorageService {
           });
         }),
         tap(recipes => {
-          this.recipeService.setRecipes(recipes);
+          this.store.dispatch(new RecipesActions.SetRecipes(recipes));
         })
       );
   }
