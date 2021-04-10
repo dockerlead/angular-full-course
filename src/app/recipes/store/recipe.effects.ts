@@ -1,8 +1,11 @@
 import {HttpClient} from "@angular/common/http";
 import {Injectable} from "@angular/core";
 import {Actions, Effect, ofType} from "@ngrx/effects";
-import {map, switchMap, tap} from "rxjs/operators";
+import {Store} from "@ngrx/store";
+import {map, switchMap, withLatestFrom} from "rxjs/operators";
+
 import {Recipe} from "../recipe.model";
+import * as fromApp from '../../store/app.reducer';
 
 import * as RecipesActions from './recipe.actions';
 
@@ -26,9 +29,21 @@ export class RecipeEffects {
     })
   );
 
+  @Effect({ dispatch: false })
+  storeRecipes = this.actions$.pipe(
+    ofType(RecipesActions.STORE_RECIPES),
+    withLatestFrom(this.store.select('recipes').pipe(map(recipesState => recipesState.recipes))),
+    switchMap(([actionData, recipes]) => {
+      return this.httpClient.put(
+        RECIPES_ENDPOINT_URL,
+        recipes
+      );
+    })
+  );
 
   constructor(
     private actions$: Actions,
-    private httpClient: HttpClient
+    private httpClient: HttpClient,
+    private store: Store<fromApp.AppState>
   ) {}
 }
